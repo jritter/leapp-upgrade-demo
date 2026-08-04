@@ -7,7 +7,5 @@
 #
 # Lab fallback (Galaxy upstream; bootstrap-collections.sh renames to redhat.leapp):
 collections:
-  - name: infra.leapp
+  - name: redhat.leapp
     version: ">=1.7.0"
-  - name: fedora.linux_system_roles
-    version: "*"
