@@ -1,0 +1,53 @@
+---
+- name: Bootstrap Python for Ansible (RHEL 8 cloud images)
+  hosts: leapp_targets
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Assert ansible_host is set (run scripts/inventory-from-libvirt.sh)
+      ansible.builtin.assert:
+        that:
+          - ansible_host is defined
+          - ansible_host | length > 0
+        fail_msg: >-
+          ansible_host is missing for {{ inventory_hostname }}.
+          Create the VM and run scripts/inventory-from-libvirt.sh.
+
+    - name: Install python3 and python3-dnf when missing
+      ansible.builtin.raw: |
+        if ! rpm -q python3-dnf >/dev/null 2>&1; then
+          dnf install -y python3 python3-dnf
+        fi
+      register: python3_bootstrap
+      changed_when: "'Installed' in python3_bootstrap.stdout or 'installing' in (python3_bootstrap.stdout | lower)"
+
+- name: Prepare LEAPP demo targets
+  hosts: leapp_targets
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Show current OS release
+      ansible.builtin.command: cat /etc/redhat-release
+      register: redhat_release
+      changed_when: false
+
+    - name: Display release
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} is running: {{ redhat_release.stdout }}"
+
+    - name: Verify RHSM is registered
+      ansible.builtin.command: subscription-manager identity
+      register: rhsm_identity
+      changed_when: false
+      failed_when: rhsm_identity.rc != 0
+
+    - name: Ensure system is fully updated before Leapp # noqa: ansible-lint package-latest
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+      register: system_update
+
+    - name: Reboot after package updates when needed
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+      when: system_update is changed # noqa: ansible-lint no-handler

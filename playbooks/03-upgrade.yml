@@ -1,0 +1,9 @@
+---
+- name: LEAPP in-place OS upgrade
+  hosts: leapp_targets
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Perform OS upgrade with redhat.leapp.upgrade
+      ansible.builtin.import_role:
+        name: redhat.leapp.upgrade

@@ -1,0 +1,48 @@
+---
+# Build a custom EE with redhat.leapp for the LEAPP upgrade demo.
+#
+# Prerequisites:
+#   podman login registry.redhat.io
+#   pip/venv: ansible-builder
+#   Automation Hub offline token: https://console.redhat.com/ansible/automation-hub/token
+#
+# Build:
+#   export ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN="<your-hub-offline-token>"
+#   ansible-builder build \
+#     -f execution-environment.yml \
+#     -t localhost/leapp-upgrade-ee:2.16 \
+#     --container-runtime podman \
+#     --build-arg ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
+
+version: 3
+
+images:
+  base_image:
+    # Switch back to ee-minimal if desired; keep package_manager_path in sync (microdnf vs dnf)
+    name: registry.redhat.io/ansible-automation-platform/ee-minimal-rhel9:2.16.19-1
+
+# ee-minimal: microdnf only. For ee-supported use /usr/bin/dnf instead.
+options:
+  package_manager_path: /usr/bin/microdnf
+
+dependencies:
+  # Default /usr/bin/python3 on ee-minimal lacks a working pip/ensurepip.
+  # Install and use Python 3.12 so builder can pip-install dumb-init and deps.
+  python_interpreter:
+    package_system: "python3.12"
+    python_path: "/usr/bin/python3.12"
+  system:
+    - python3.12-pip
+  galaxy: ee/requirements.yml
+
+additional_build_files:
+  - src: ee/ansible.cfg
+    dest: configs
+
+additional_build_steps:
+  prepend_galaxy:
+    # Configure Automation Hub so ansible-galaxy can resolve redhat.* collections
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+    # Server name in ee/ansible.cfg is "automation_hub"
+    - ARG ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN
+    - ENV ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN=$ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN

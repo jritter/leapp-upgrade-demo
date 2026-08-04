@@ -1,0 +1,38 @@
+---
+- name: Verify LEAPP upgrade result
+  hosts: leapp_targets
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Read /etc/redhat-release
+      ansible.builtin.slurp:
+        src: /etc/redhat-release
+      register: release_file
+
+    - name: Parse release text
+      ansible.builtin.set_fact:
+        release_text: "{{ release_file.content | b64decode | trim }}"
+
+    - name: Show release after upgrade
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} => {{ release_text }}"
+
+    - name: Assert expected major version
+      ansible.builtin.assert:
+        that:
+          - expected_major_version is defined
+          - expected_major_version in release_text
+        fail_msg: >-
+          Expected RHEL {{ expected_major_version }} in release string,
+          got: {{ release_text }}
+        success_msg: "Upgrade verified: {{ release_text }}"
+
+    - name: Confirm subscription still attached
+      ansible.builtin.command: subscription-manager status
+      register: rhsm_status
+      changed_when: false
+      failed_when: false
+
+    - name: Show subscription-manager status
+      ansible.builtin.debug:
+        var: rhsm_status.stdout_lines

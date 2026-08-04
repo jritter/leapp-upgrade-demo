@@ -1,0 +1,7 @@
+---
+# Shared Leapp / demo defaults (CDN path)
+leapp_upgrade_type: cdn
+leapp_selinux_mode: enforcing
+
+# Ansible connection defaults for lab guests
+ansible_python_interpreter: auto_silent

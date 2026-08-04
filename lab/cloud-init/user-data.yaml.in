@@ -1,0 +1,35 @@
+#cloud-config
+hostname: __HOSTNAME__
+fqdn: __HOSTNAME__.lab.local
+manage_etc_hosts: true
+
+users:
+  - default
+  - name: __VM_USER__
+    groups: [wheel]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - __SSH_PUBKEY__
+
+ssh_pwauth: false
+disable_root: true
+
+growpart:
+  mode: auto
+  devices: ["/"]
+  ignore_growroot_disabled: false
+
+runcmd:
+  - |
+    set -euo pipefail
+    if command -v subscription-manager >/dev/null 2>&1; then
+      subscription-manager register \
+        --org="__RHSM_ORG__" \
+        --activationkey="__RHSM_ACTIVATIONKEY__" \
+        --force || true
+      subscription-manager attach --auto || true
+    fi
+  - touch /var/lib/cloud/instance/leap-lab-ready
+
+final_message: "leap-upgrade-demo guest __HOSTNAME__ is ready"

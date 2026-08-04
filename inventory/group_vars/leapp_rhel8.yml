@@ -1,0 +1,4 @@
+---
+# RHEL 8 → RHEL 9 (adjust minor to a currently supported target)
+leapp_upgrade_opts: "--target-version 9.8"
+expected_major_version: "9"

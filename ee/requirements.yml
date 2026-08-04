@@ -1,0 +1,6 @@
+---
+# Collections installed into the custom LEAPP demo execution environment.
+# Resolved from Automation Hub via ee/ansible.cfg during ansible-builder galaxy stage.
+collections:
+  - name: redhat.leapp
+  - name: redhat.rhel_system_roles

@@ -1,0 +1,30 @@
+# Local secrets and env
+.env
+lab/config.env
+
+# Libvirt lab artifacts
+lab/images/
+lab/disks/
+lab/cloud-init/generated/
+lab/*.iso
+
+# Ansible
+collections/
+host_vars/
+playbooks/host_vars/
+inventory/lab.generated.yml
+ansible_leapp_*_logs_*/
+*.retry
+.ansible/
+ansible-navigator.log
+
+# Local tooling venv (ansible-navigator / ansible-builder)
+venv_ansible/
+
+# Editor / OS
+*.swp
+*~
+.DS_Store
+
+# Ansible builder context
+context/

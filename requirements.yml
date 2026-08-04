@@ -1,0 +1,13 @@
+---
+# Preferred on RHEL control nodes:
+#   dnf install -y ansible-collection-redhat-leapp rhel-system-roles
+#
+# Preferred with Automation Hub:
+#   ansible-galaxy collection install redhat.leapp redhat.rhel_system_roles
+#
+# Lab fallback (Galaxy upstream; bootstrap-collections.sh renames to redhat.leapp):
+collections:
+  - name: infra.leapp
+    version: ">=1.7.0"
+  - name: fedora.linux_system_roles
+    version: "*"
