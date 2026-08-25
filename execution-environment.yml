@@ -1,5 +1,5 @@
 ---
-# Build a custom EE with redhat.leapp for the LEAPP upgrade demo.
+# Build a custom EE with infra.leapp for the LEAPP upgrade demo.
 #
 # Prerequisites:
 #   podman login registry.redhat.io
@@ -20,6 +20,7 @@ images:
   base_image:
     # Switch back to ee-minimal if desired; keep package_manager_path in sync (microdnf vs dnf)
     name: registry.redhat.io/ansible-automation-platform/ee-minimal-rhel9:2.16.19-1
+    # name: registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:2.0-1785777436
 
 # ee-minimal: microdnf only. For ee-supported use /usr/bin/dnf instead.
 options:
@@ -38,6 +39,8 @@ dependencies:
 additional_build_files:
   - src: ee/ansible.cfg
     dest: configs
+  - src: infra-leapp-1.7.6.tar.gz
+    dest: .
 
 additional_build_steps:
   prepend_galaxy:

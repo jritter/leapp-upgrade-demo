@@ -4,8 +4,8 @@
   gather_facts: true
   become: true
   tasks:
-    - name: Run redhat.leapp.analysis
+    - name: Run infra.leapp.analysis
       ansible.builtin.import_role:
-        name: redhat.leapp.analysis
+        name: infra.leapp.analysis
       vars:
         leapp_preupg_opts: "{{ leapp_upgrade_opts | default(omit) }}"

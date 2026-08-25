@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the custom LEAPP demo execution environment (ansible-core 2.16 + redhat.leapp).
+# Build the custom LEAPP demo execution environment (ansible-core 2.16 + infra.leapp).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,7 +34,7 @@ fi
 TOKEN="${ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN:-${AUTOMATION_HUB_TOKEN:-}}"
 if [[ -z "${TOKEN}" ]]; then
   cat <<'EOF' >&2
-ERROR: Automation Hub token required to pull redhat.leapp into the EE.
+ERROR: Automation Hub token required to pull infra.leapp into the EE.
 
 Set one of:
   export ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN="<hub-offline-token>"

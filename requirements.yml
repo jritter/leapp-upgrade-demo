@@ -3,9 +3,12 @@
 #   dnf install -y ansible-collection-redhat-leapp rhel-system-roles
 #
 # Preferred with Automation Hub:
-#   ansible-galaxy collection install redhat.leapp redhat.rhel_system_roles
+#   ansible-galaxy collection install infra.leapp redhat.rhel_system_roles
 #
-# Lab fallback (Galaxy upstream; bootstrap-collections.sh renames to redhat.leapp):
+# Lab fallback (Galaxy upstream; bootstrap-collections.sh renames to infra.leapp):
 collections:
-  - name: redhat.leapp
-    version: ">=1.7.0"
+  # - name: infra.leapp
+  #   version: ">=1.7.0"
+
+  - name: infra-leapp-1.7.6.tar.gz
+    type: file

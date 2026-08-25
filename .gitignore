@@ -21,10 +21,35 @@ ansible-navigator.log
 # Local tooling venv (ansible-navigator / ansible-builder)
 venv_ansible/
 
+# Python
+__pycache__/
+*.pyc
+
 # Editor / OS
 *.swp
 *~
 .DS_Store
+.vscode
 
 # Ansible builder context
 context/
+
+# Demo recordings
+recordings/
+
+# Scratch
+scratch/
+
+# other artefacts
+*.tar.gz
+*.zip
+*.bz2
+*.gz
+*.xz
+*.tar
+*.tar.bz2
+*.tar.gz
+*.tar.xz
+*.tar.zst
+*.tar.lzma
+*.tar.lz4

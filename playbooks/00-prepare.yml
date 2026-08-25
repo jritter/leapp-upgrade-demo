@@ -13,14 +13,6 @@
           ansible_host is missing for {{ inventory_hostname }}.
           Create the VM and run scripts/inventory-from-libvirt.sh.
 
-    - name: Install python3 and python3-dnf when missing
-      ansible.builtin.raw: |
-        if ! rpm -q python3-dnf >/dev/null 2>&1; then
-          dnf install -y python3 python3-dnf
-        fi
-      register: python3_bootstrap
-      changed_when: "'Installed' in python3_bootstrap.stdout or 'installing' in (python3_bootstrap.stdout | lower)"
-
 - name: Prepare LEAPP demo targets
   hosts: leapp_targets
   gather_facts: true

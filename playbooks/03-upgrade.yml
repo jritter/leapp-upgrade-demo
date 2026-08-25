@@ -4,6 +4,6 @@
   gather_facts: true
   become: true
   tasks:
-    - name: Perform OS upgrade with redhat.leapp.upgrade
+    - name: Perform OS upgrade with infra.leapp.upgrade
       ansible.builtin.import_role:
-        name: redhat.leapp.upgrade
+        name: infra.leapp.upgrade

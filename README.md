@@ -1,6 +1,6 @@
-# LEAPP Upgrade Demo (`redhat.leapp`)
+# LEAPP Upgrade Demo (`infra.leapp`)
 
-Local lab that provisions disposable RHEL guests with **libvirt** (`virt-install` + cloud-init) and walks through the supported **`redhat.leapp`** Ansible collection for in-place upgrades against **Red Hat CDN**:
+Local lab that provisions disposable RHEL guests with **libvirt** (`virt-install` + cloud-init) and walks through the supported **`infra.leapp`** Ansible collection for in-place upgrades against **Red Hat CDN**:
 
 | Path | Guest | Limit |
 |------|--------|--------|
@@ -27,7 +27,7 @@ Playbooks run through **ansible-navigator** and a custom **execution environment
 - Active subscription (Developer subscription is enough)
 - Activation key + organization ID from [console.redhat.com](https://console.redhat.com)
 - Registry login for the EE base image: `podman login registry.redhat.io`
-- Automation Hub offline token to bake `redhat.leapp` into the EE: [Automation Hub token](https://console.redhat.com/ansible/automation-hub/token)
+- Automation Hub offline token to bake `infra.leapp` into the EE: [Automation Hub token](https://console.redhat.com/ansible/automation-hub/token)
 - RHEL **KVM guest** qcow2 images (not the installer ISO), for example:
   - `rhel-8.10-x86_64-kvm.qcow2`
   - `rhel-9.6-x86_64-kvm.qcow2`
@@ -94,7 +94,7 @@ Tear down:
 
 ## Execution environment
 
-[`execution-environment.yml`](execution-environment.yml) builds `localhost/leapp-upgrade-ee:2.16` from `ee-minimal-rhel9:2.16.19-1` and installs `redhat.leapp` + `redhat.rhel_system_roles` from Automation Hub (`ee/requirements.yml`).
+[`execution-environment.yml`](execution-environment.yml) builds `localhost/leapp-upgrade-ee:2.16` from `ee-minimal-rhel9:2.16.19-1` and installs `infra.leapp` + `redhat.rhel_system_roles` from Automation Hub (`ee/requirements.yml`).
 
 ```bash
 ./scripts/build-ee.sh
@@ -108,7 +108,7 @@ Do **not** run these playbooks with host `ansible-playbook` against RHEL 8 when 
 
 ### Optional: host-side collections
 
-`scripts/bootstrap-collections.sh` can still install `redhat.leapp` on the control node (RPM → Automation Hub → Galaxy `infra.leapp` rename). That is not required for the navigator/EE workflow; collections are already in the image.
+`scripts/bootstrap-collections.sh` can still install `infra.leapp` on the control node (RPM → Automation Hub → Galaxy `infra.leapp` rename). That is not required for the navigator/EE workflow; collections are already in the image.
 
 ## Layout
 
@@ -133,7 +133,7 @@ Bump those strings when you need a newer supported minor.
 
 - On Fedora, use `./venv_ansible` for `ansible-navigator` / `ansible-builder` (`source venv_ansible/bin/activate`). Host `ansible-playbook` is not the supported control path for RHEL 8 guests.
 - Upgrades are **long** and reboot the guest; keep the laptop powered and the libvirt network up.
-- Not every inhibitor can be fixed by `redhat.leapp.remediate`; some need manual fixes before upgrade.
+- Not every inhibitor can be fixed by `infra.leapp.remediate`; some need manual fixes before upgrade.
 - Third-party / non-RHEL packages are out of scope for the upgrade role.
 - Official docs:
   - [Upgrading from RHEL 8 to RHEL 9 — Ansible roles](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/upgrading_from_rhel_8_to_rhel_9/upgrading-large-deployments-by-using-ansible-roles_upgrading-from-rhel-8-to-rhel-9)

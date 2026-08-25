@@ -2,7 +2,7 @@
 # ansible-navigator configuration for the LEAPP upgrade demo.
 #
 # Why an EE: recent ansible-core (e.g. 2.20 on Fedora) cannot manage RHEL 8
-# (python3-dnf / platform-python). This EE pins ansible-core 2.16 + redhat.leapp.
+# (python3-dnf / platform-python). This EE pins ansible-core 2.16 + infra.leapp.
 #
 # Build: ./scripts/build-ee.sh
 # Run:   ./scripts/run-with-navigator.sh playbooks/00-prepare.yml leapp-rhel8
@@ -16,11 +16,11 @@ ansible-navigator:
   app: run
   mode: stdout
   playbook-artifact:
-    enable: false
+    enable: true
   execution-environment:
     container-engine: podman
     enabled: true
-    # Custom EE: ee-minimal-rhel9:2.16.19-1 + redhat.leapp
+    # Custom EE: ee-minimal-rhel9:2.16.19-1 + infra.leapp
     image: localhost/leapp-upgrade-ee:2.16
     pull:
       policy: missing
