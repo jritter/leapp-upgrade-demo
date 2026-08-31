@@ -17,6 +17,7 @@ ansible_leapp_*_logs_*/
 *.retry
 .ansible/
 ansible-navigator.log
+*artifact*.json
 
 # Local tooling venv (ansible-navigator / ansible-builder)
 venv_ansible/

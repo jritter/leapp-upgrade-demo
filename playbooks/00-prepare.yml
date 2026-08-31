@@ -32,14 +32,3 @@
       register: rhsm_identity
       changed_when: false
       failed_when: rhsm_identity.rc != 0
-
-    - name: Ensure system is fully updated before Leapp # noqa: ansible-lint package-latest
-      ansible.builtin.dnf:
-        name: "*"
-        state: latest
-      register: system_update
-
-    - name: Reboot after package updates when needed
-      ansible.builtin.reboot:
-        reboot_timeout: 600
-      when: system_update is changed # noqa: ansible-lint no-handler
