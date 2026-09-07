@@ -1,0 +1,149 @@
+---
+# Configure Ansible Automation Platform for the LEAPP upgrade demo.
+#
+# Creates an execution environment, project, inventory, and job templates.
+#
+# Usage:
+#   ansible-playbook playbooks/aap-setup.yml \
+#     -e controller_host=https://aap.example.com \
+#     -e controller_username=admin \
+#     -e controller_password=secret \
+#     -e aap_organization=Default \
+#     -e aap_ee_image=registry.example.com/leapp-upgrade-ee:2.16 \
+#     -e aap_registry_credential="Registry Credential" \
+#     -e aap_machine_credential="LEAPP Lab SSH"
+#
+# Required collections:
+#   ansible.controller  (ansible-automation-platform content collection)
+
+- name: Configure AAP for LEAPP upgrade demo
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    aap_organization: "{{ aap_organization | default('Default') }}"
+    aap_project_name: "LEAPP Upgrade Demo"
+    aap_scm_url: "https://github.com/jritter/leapp-upgrade-demo.git"
+    aap_scm_branch: "{{ aap_scm_branch | default('main') }}"
+    aap_inventory_name: "LEAPP Targets"
+    aap_ee_name: "LEAPP Upgrade EE"
+    aap_ee_image: "{{ aap_ee_image | default('registry.redhat.io/ansible-automation-platform/ee-minimal-rhel9:2.16.19-1') }}"
+    aap_ee_credential: "{{ aap_registry_credential | default(omit) }}"
+    aap_credential_name: "{{ aap_machine_credential | default(omit) }}"
+
+    aap_job_templates:
+      - name: "LEAPP / 00 - Register and Update"
+        playbook: playbooks/00-register-and-update.yml
+        description: "Register with Red Hat CDN, run Insights, update all packages, and reboot."
+        ask_limit_on_launch: true
+        ask_variables_on_launch: true
+
+      - name: "LEAPP / 01 - Prepare"
+        playbook: playbooks/00-prepare.yml
+        description: "Verify RHSM registration and upload Insights baseline."
+        ask_limit_on_launch: true
+
+      - name: "LEAPP / 02 - Analysis"
+        playbook: playbooks/01-analysis.yml
+        description: "Run leapp preupgrade to detect inhibitors and risks."
+        ask_limit_on_launch: true
+
+      - name: "LEAPP / 03 - Remediate"
+        playbook: playbooks/02-remediate.yml
+        description: "Apply automated fixes for known inhibitors."
+        ask_limit_on_launch: true
+
+      - name: "LEAPP / 04 - Upgrade"
+        playbook: playbooks/03-upgrade.yml
+        description: "Run leapp upgrade and reboot into the new RHEL version."
+        ask_limit_on_launch: true
+
+      - name: "LEAPP / 05 - Verify"
+        playbook: playbooks/99-verify.yml
+        description: "Assert expected RHEL version and upload to Insights."
+        ask_limit_on_launch: true
+
+      - name: "LEAPP / Full Upgrade (all stages)"
+        playbook: playbooks/leapp-upgrade.yml
+        description: "End-to-end upgrade: prepare → analysis → remediate → re-analysis → upgrade → verify."
+        ask_limit_on_launch: true
+
+  tasks:
+    - name: Validate controller connection variables
+      ansible.builtin.assert:
+        that:
+          - controller_host is defined
+          - controller_username is defined or controller_oauthtoken is defined
+        fail_msg: >-
+          Provide controller_host and either controller_username/controller_password
+          or controller_oauthtoken as extra vars.
+
+    # ── Execution Environment ─────────────────────────────────
+
+    - name: Create execution environment
+      ansible.controller.execution_environment:
+        name: "{{ aap_ee_name }}"
+        organization: "{{ aap_organization }}"
+        image: "{{ aap_ee_image }}"
+        credential: "{{ aap_ee_credential }}"
+        pull: missing
+        state: present
+
+    # ── Project ────────────────────────────────────────────────
+
+    - name: Create SCM project
+      ansible.controller.project:
+        name: "{{ aap_project_name }}"
+        organization: "{{ aap_organization }}"
+        scm_type: git
+        scm_url: "{{ aap_scm_url }}"
+        scm_branch: "{{ aap_scm_branch }}"
+        scm_update_on_launch: true
+        state: present
+
+    - name: Sync project to make playbooks available
+      ansible.controller.project_update:
+        project: "{{ aap_project_name }}"
+        organization: "{{ aap_organization }}"
+        wait: true
+        timeout: 120
+
+    # ── Inventory ──────────────────────────────────────────────
+
+    - name: Create inventory
+      ansible.controller.inventory:
+        name: "{{ aap_inventory_name }}"
+        organization: "{{ aap_organization }}"
+        state: present
+
+    - name: Create inventory source from project
+      ansible.controller.inventory_source:
+        name: "{{ aap_project_name }}"
+        inventory: "{{ aap_inventory_name }}"
+        organization: "{{ aap_organization }}"
+        source: scm
+        source_project: "{{ aap_project_name }}"
+        source_path: inventory/hosts.yml
+        update_on_launch: true
+        overwrite: true
+        state: present
+
+    # ── Job Templates ──────────────────────────────────────────
+
+    - name: Create job templates
+      ansible.controller.job_template:
+        name: "{{ item.name }}"
+        organization: "{{ aap_organization }}"
+        project: "{{ aap_project_name }}"
+        inventory: "{{ aap_inventory_name }}"
+        playbook: "{{ item.playbook }}"
+        description: "{{ item.description }}"
+        execution_environment: "{{ aap_ee_name }}"
+        credential: "{{ aap_credential_name }}"
+        ask_limit_on_launch: "{{ item.ask_limit_on_launch | default(false) }}"
+        ask_variables_on_launch: "{{ item.ask_variables_on_launch | default(false) }}"
+        become_enabled: true
+        state: present
+      loop: "{{ aap_job_templates }}"
+      loop_control:
+        label: "{{ item.name }}"

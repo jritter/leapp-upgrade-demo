@@ -1,0 +1,81 @@
+---
+- name: Register, update, and reboot LEAPP targets
+  hosts: leapp_targets
+  gather_facts: true
+  become: true
+  vars:
+    rhsm_org: "{{ lookup('env', 'RHSM_ORG') }}"
+    rhsm_activationkey: "{{ lookup('env', 'RHSM_ACTIVATIONKEY') }}"
+  tasks:
+    - name: Ensure RHSM org and activation key are provided
+      ansible.builtin.assert:
+        that:
+          - rhsm_org | length > 0
+          - rhsm_activationkey | length > 0
+        fail_msg: >-
+          Set RHSM_ORG and RHSM_ACTIVATIONKEY environment variables
+          before running this playbook.
+
+    - name: Check subscription-manager identity
+      ansible.builtin.command: subscription-manager identity
+      register: rhsm_identity
+      changed_when: false
+      failed_when: false
+
+    - name: Register with Red Hat CDN
+      community.general.redhat_subscription:
+        org_id: "{{ rhsm_org }}"
+        activationkey: "{{ rhsm_activationkey }}"
+        state: present
+        force_register: false
+      when: rhsm_identity.rc != 0
+
+    - name: Auto-attach subscriptions
+      ansible.builtin.command: subscription-manager attach --auto
+      register: attach_result
+      changed_when: "'attached' in attach_result.stdout | lower"
+      failed_when: false
+      when: rhsm_identity.rc != 0
+
+    - name: Verify registration
+      ansible.builtin.command: subscription-manager identity
+      register: rhsm_verify
+      changed_when: false
+      failed_when: rhsm_verify.rc != 0
+
+    - name: Register and upload to Red Hat Lightspeed
+      ansible.builtin.command: insights-client --register
+      register: insights_result
+      changed_when: "'Successfully registered' in insights_result.stdout"
+      failed_when: insights_result.rc != 0
+
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      register: update_result
+
+    - name: Show update summary
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ update_result.results | default([]) | length }} package(s) updated"
+
+    - name: Reboot if packages were updated
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+        msg: "Rebooting after package updates"
+      when: update_result is changed
+
+    - name: Wait for system to come back
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+      when: update_result is changed
+
+    - name: Show release after reboot
+      ansible.builtin.command: cat /etc/redhat-release
+      register: release_after
+      changed_when: false
+
+    - name: Display final state
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} is running: {{ release_after.stdout }}"

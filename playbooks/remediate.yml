@@ -1,0 +1,9 @@
+---
+- name: Remediate
+  hosts: all
+  become: true
+  tasks:
+    - name: Perform remediations on the system
+      ansible.builtin.include_role:
+        name: infra.leapp.remediate
+...

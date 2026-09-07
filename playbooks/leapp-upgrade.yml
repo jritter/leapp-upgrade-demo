@@ -1,0 +1,36 @@
+---
+# End-to-end LEAPP in-place upgrade playbook.
+#
+# Chains all stages in order:
+#   1. Prepare    – verify registration, upload Insights baseline
+#   2. Analysis   – leapp preupgrade to detect inhibitors
+#   3. Remediate  – apply automated fixes for known inhibitors
+#   4. Re-analysis – confirm inhibitors are resolved
+#   5. Upgrade    – leapp upgrade and reboot into the new RHEL
+#   6. Verify     – assert expected version, upload to Insights
+#
+# Designed to run from Ansible Automation Platform or the CLI:
+#   ansible-playbook playbooks/site.yml --limit leapp-rhel9
+#
+# Required variables (set via inventory group_vars or extra vars):
+#   leapp_upgrade_type       – upgrade type, e.g. "cdn" (group_vars/all.yml)
+#   leapp_upgrade_opts       – leapp CLI flags, e.g. "--target 10.2"
+#   expected_major_version   – expected RHEL major after upgrade, e.g. "10"
+
+- name: "Stage 1/6: Prepare"
+  ansible.builtin.import_playbook: 00-prepare.yml
+
+- name: "Stage 2/6: Pre-upgrade analysis"
+  ansible.builtin.import_playbook: 01-analysis.yml
+
+- name: "Stage 3/6: Remediate inhibitors"
+  ansible.builtin.import_playbook: 02-remediate.yml
+
+- name: "Stage 4/6: Re-analysis (verify remediations)"
+  ansible.builtin.import_playbook: 01-analysis.yml
+
+- name: "Stage 5/6: In-place OS upgrade"
+  ansible.builtin.import_playbook: 03-upgrade.yml
+
+- name: "Stage 6/6: Verify upgrade result"
+  ansible.builtin.import_playbook: 99-verify.yml

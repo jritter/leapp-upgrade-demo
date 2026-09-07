@@ -30,6 +30,10 @@ runcmd:
         --force || true
       subscription-manager attach --auto || true
     fi
-  - touch /var/lib/cloud/instance/leap-lab-ready
+  - ['bash', '-c', 'P=$(tr -dc A-Za-z0-9 </dev/urandom | head -c16); echo "__VM_USER__:$P" | chpasswd; echo "Cockpit password for __VM_USER__: $P" > /home/__VM_USER__/.cockpit-password; chmod 600 /home/__VM_USER__/.cockpit-password; chown __VM_USER__:__VM_USER__ /home/__VM_USER__/.cockpit-password; echo "Cockpit: __VM_USER__ / $P" | tee /dev/console']
+  - ['bash', '-c', 'insights-client --register || true']
+  - ['bash', '-c', 'dnf install -y cockpit-leapp || true']
+  - ['bash', '-c', 'systemctl enable --now cockpit.socket || true']
+  - ['bash', '-c', 'touch /var/lib/cloud/instance/leapp-lab-ready']
 
-final_message: "leap-upgrade-demo guest __HOSTNAME__ is ready"
+final_message: "leapp-upgrade-demo guest __HOSTNAME__ is ready"

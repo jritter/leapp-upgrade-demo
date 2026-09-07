@@ -9,3 +9,7 @@
         name: infra.leapp.analysis
       vars:
         leapp_preupg_opts: "{{ leapp_upgrade_opts | default(omit) }}"
+
+    - name: Upload analysis results to Red Hat Lightspeed
+      ansible.builtin.command: insights-client
+      changed_when: true
